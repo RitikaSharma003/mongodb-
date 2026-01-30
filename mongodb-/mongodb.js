@@ -368,3 +368,132 @@ db.emp.updateOne({empName:"ward"},{pullAll:{skills:["node","mongodb"]}});
 db.emp.updateOne({},{$pull:{$regex:{skills:{$regex:/e/}}}});
 db.emp.updateOne({},{$pull:{$regex:{skills:"monogdb"}}});
 
+
+
+// *differnce between $pull and $pullAll -> using pull  we can pass conditions 
+// *1.) we can update the first matching Element. 
+// *2.) we can update all the elements 
+//* 3.) we can update all the mtaching elements 
+
+//? for condition -1  
+
+//! Add a bonus  field to the experience   history in which durration in greater than 20 .
+db.users.update({$and :[{name:"Rajesh kumar"},{experience: {elemMatch:{duration:{$gt:20}}}}]})
+
+db.users.updateOne({experience:{$elemMatch:{duration :{$gt:20}}}},
+    {$set :{"experience.$.bonus":200}}, //*here$ is used to go inside array (key value pairs of any particular data)
+    )
+
+    //? for condition-2
+
+db.users.updateOne({experience:{$elemMatch:{duration :{$gt:20}}}},
+    {$set :{"experience.$[].bonus":400}}, //* here$[] is used to go inside array (key value pairs of any particular data) and update all the array values
+
+    );
+
+
+
+    //? for condition-3
+    db.users.updateOne({experience:{$elemMatch:{duration :{$gt:20}}}},
+    {$set :{"experience.$[e].bonus":400}},
+    {$arrayFilters:{"e.duration ":{$gt:20} 
+
+
+    //!used for filtering the array meanns for particular array we want to match the condition 
+
+}}) //to select particular array not all the array  for filters  
+
+
+//! Add to company : true,  to all the exp entries where the company is either google , amazon , or microsoft  
+db.users.find({experience : {$elemMatch:{company :{$in :["Amazon","Google", "Microsoft"]}}}});
+
+
+db.users.updateMany(
+    
+    {experience : {$elemMatch:{company :{$in :["Amazon","Google", "Microsoft"]}}}},
+
+    {$set:{"experience.$[e].toCompany":true}},
+    {
+        arrayFilters: [{"e.company":{$in :["Amazon", "Google" ,"Microsoft"]}}]
+    }
+);
+
+
+//! add midlevel :true, to all the experience history where salary is between  80,000,and 15, 00,000
+db.users.find(
+    {
+        experience:{$elemMatch:{sal :{$gt:800000, $lt:1500000}}}
+        
+    },
+
+);
+
+
+db.users.updateMany({
+    
+        experience:{$elemMatch:{sal :{$gt:800000, $lt:1500000}}}
+        
+    
+},
+    {$set :{"experience.$[e].midlevel":true}},
+    {arrayfilters:[{"e.sal" :{$gt :80000, $lt:1500000}}]}
+
+); 
+
+
+
+
+//!----30-01-26------------------------------queries -------------------------------------------------------------------------
+//?Find all the departments whose age is divisible by 10 (use $mod)
+//{fieldname: {$mod:[divisior,remiainder]}}
+ 
+db.emp.find({age:{$mod:[10,0]}},{age:1});
+
+//! find all employees whose job titles contain  "man";
+db.emp.find({job:{$regex:/^man/}},{job:1});
+
+
+//!find all the emplouess whose working in dept 20 or 30 and ahve skills "sql"
+db.emp.find({$and:[{skills:"sql"},{deptNo:{$in:[20,30]}}]});
+//or 
+db.emp.find({skills:"sql", deptNo:{$in:[20,30]
+}});
+
+
+//! find all the employees with exactly 3 projects and education is master or phd 
+db.emp.find({skills:{$size:3},education : {$in:["master","phd"]}});
+
+
+//!set a performance rating to 4.9 for emplouee "matrin " and also add last review date to the emp data 
+db.emp.updateOne({empName:"ward"} ,{$set :{"performance.rating" :4.9 ,"performance.lastPromotedDate": Date.now() or ISODate(2026-1-31)}});
+
+//!add a new facility "gym" to the facilities array of depratment 20 
+db.deptNo.updateOne({dept:20}  ,{$addToSet:{facility:"gym"}})
+
+
+//! add "trainingrqeuired" field a strue for all clerks wit performance rating below 4.0 
+
+db.emp.updateMany(
+    {job:"clerk",
+        "performance.rating ":{$lt:4},
+
+    }
+    ,{$set:{trainingRequired:true}}
+
+)
+;
+//! Add skill "problem solving  " at position_1 in skills array for employee scott 
+db.emp.updateOne({
+    des:"Scott"},{$push:{ skills:"problem solving " ,position:1}
+})
+
+//!Lazy Fetching - mongodb fetches the data in batches  to optimize the performance 
+
+//?whenever we exceute a find method we get a cursor which points to data present in the database .The default behoaviour of mongoshell (our current driver ) is to print the first 20 documents presentat the cursor .If more documents  are present then we have to type "it" to get the next 20 documents and more .
+
+//!Node(driver)->find()->cursor 
+
+db.emp.find.forEach((doc)=>{
+    print(doc.age);
+
+})
