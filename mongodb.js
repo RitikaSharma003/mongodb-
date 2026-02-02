@@ -22,14 +22,14 @@ db.users.updateOne({experience:{$elemMatch:{duration :{$gt:20}}}},
 
 
     //? for condition-3
-    db.users.updateOne({experience:{$elemMatch:{duration :{$gt:20}}}},
-    {$set :{"experience.$[e].bonus":400}},
-    {$arrayFilters:{"e.duration ":{$gt:20} 
+    db.users.updateOne({experience:{$elemMatch:{duration:{$gt:20}}}},
+    {$set :{"experience.$[e].incentive":400}},
+    {arrayFilters:[{"e.duration":{$gt:20}}]})
 
 
     //!used for filtering the array meanns for particular array we want to match the condition 
 
-}}) //to select particular array not all the array  for filters  
+ //to select particular array not all the array  for filters  
 
 
 //! Add to company : true,  to all the exp entries where the company is either google , amazon , or microsoft  

@@ -497,3 +497,98 @@ db.emp.find.forEach((doc)=>{
     print(doc.age);
 
 })
+
+
+//!Data modeling-> it defines how data is stored and what is the relation between the data 
+//? how to define relation between  data->1) embedded data(nested data )
+//?2-)refrenced data
+//* demoramlized data
+//! advantage->
+//?1.) single query used to fetch complete data 
+
+//! disadvantage->
+//?1.) 16 Mb is the maximum size of a doucumnet in mongodb
+//?2.) somwtimes we are overfetching the data
+//? 3.) 100 levels of nesting can be performed .
+//? 4) update operations are slow .
+
+
+db.moviesList.insertMany({
+    name:"mission impossible",
+    genre:"action",
+    actors:{
+actor1:"tom cruise",
+    actor2:"simon peg"
+    }
+    
+},{
+
+
+    name:"silent-hill",
+    genre:"action",
+    actors:{
+ actor1:"tonf ngng",
+    }
+   
+
+
+});
+
+//! products and cart 
+//! embedded 
+let cart1={
+    prod1:{
+        name:"samsung phone",price:"50000",qty:3 ,brand : "samsung" 
+
+    },
+    prod2:{
+        name:"laptop" ,price:"70000",qty:1,brand:"asus"
+    },
+
+prod3:{
+        name:"mouse" ,price:"2000",qty:2,brand:"asus"
+    },
+    prod2:{
+        name:"TV" ,price:"80000",qty:1,brand:"samsung"
+    }
+,
+}
+
+
+
+let cart2={
+    prod1:{
+        name:"keyboard",price:"30000",qty:1 ,brand : "samsung" 
+
+    },
+    prod2:{
+        name:"shoes" ,price:"5000",qty:1,brand:"nike"
+    },
+
+prod3:{
+        name:"mouse" ,price:"2000",qty:2,brand:"asus"
+    },
+    prod2:{
+        name:"bottle" ,price:"800",qty:1,brand:"nike"
+    }
+,
+}
+
+ //** normalized data= referenced data;
+
+//!product collection  
+let c01={prod1:{
+    pId:"P123",qty:2
+},
+prod2:{
+    pId:"P234",qty:1
+}}
+let p1={
+    _id:"P123",name:"samsung phone",price:"40000",brand:"samsung" ,
+    _id:"P234",name:"laptop",price:"7000",brand:"asus",
+
+}
+
+// to create a collection
+//  db.createCollection ("collection name",{structure});
+
