@@ -592,3 +592,99 @@ let p1={
 // to create a collection
 //  db.createCollection ("collection name",{structure});
 
+
+
+
+
+
+//!----------------------Data Processing Pipeline--multiple queries -------------------------------------------------
+//* display the count of emp in each department who are working in "new" york"
+//! we cannot use find() here  
+//?we will use aggregate here , aggreagte method is used for complex operations  and we can fetch the data only. It does not modify the original data .
+// Aggregation in mongodb is like data processing  pipeline
+//Syntax for Aggregate :-
+
+//!db.collection_name(aggregate[ {stage1}, {stage2} ,{stage3} ,...]); //!
+//  here each stage represented a query 
+
+
+//?input to first stage is the complete collection  
+//?Aggregations operators ->$match , $group ,$lookup ,$unwind etc ,
+//?in each stage only one aggreagtions operator can be used 
+//?output of each stage is input to the next stage 
+
+
+
+//*$match -> It is used to apply conditions (It is used to filter the documents based on the condition )
+//!find all the employees names who are working as clerk 
+db.emp.find({job:"clerk"},{empName:1});
+db.emp.aggregate(
+    [
+    
+    { $match:{job:"clerk"}},  //stage1
+{ $project:{empName:1,_id:0}}//stage2
+]);
+
+
+db.emp.aggregate(
+    [
+    // { $project:{empName:1,_id:0 ,job:1}},
+     { $project:{username:"$empName",_id:0 ,job:1}},//stage:1 //aliasing 
+    { $match:{job:"clerk"}},  //stage2
+
+]);
+
+
+//!whenever we are passing doc field as a value then we have to use double quotes and $symbol before it . 
+//? {aliasName: "$fieldname"} ; 
+
+//?* group -> it is used to group the documents  based on some value 
+ 
+//!  find the no of empolyees in each job(clerk,manager);
+{
+    // $group : {
+    //     _id :"fieldName" 
+    //     ,
+       //?grouping value is used to avoid duplicates  
+        //?  count:{$sum:1},
+       //? total:{$sum:"$fieldName"},
+       //?max: {$min : "$fieldName"}
+
+        
+         db.emp.aggregate([
+            {
+                $group:{
+                    _id :'$job' ,
+                    count:{$sum:1}
+                }
+            }
+         ])
+
+    
+}
+
+
+//! find all the employees name and hire Date working  in department  20 0r 30 
+
+
+db.emp.aggregate([
+{$match:{deptNo:{$in :[20,30]}}},
+{$project:{empName:1,hireDate:1}}
+
+
+])
+
+ //! find all the employees with  performance rating  above 4.0 
+db.emp.aggregate(
+    [{$match:{rating :{$gt:4.0}}}]
+    {$project :{empName:1 ,_id:0}}
+)
+//!find all managers and analysts  in department 10or 30 
+db.emp.aggregate([
+    {
+        $match:{
+            $and:[job:{$in:["manager","ananlysts"]},
+        ]
+        }
+    }
+])
