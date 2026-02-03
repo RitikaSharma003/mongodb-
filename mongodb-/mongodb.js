@@ -129,19 +129,19 @@ db.emp.find({skills:{$size:4}},{skills:1}); // *this will fetch the documents ba
 //?{fieldName:{$elemMatch :{conditions}}}
 
 
-//!Students who have scored above 90 in maths exams
-db.students.find({courses:{$elemMatch:{marks:{$gt:90} , subject:"Math", semester:1},
+//!conatcts who have scored above 90 in maths exams
+db.conatcts.find({courses:{$elemMatch:{marks:{$gt:90} , subject:"Math", semester:1},
  }
 },{name:1,_id:0});
 
 
 
-//!students who have failed marks <50 in any exam in semester 1
-dbstudents.find({courses:{$elemMatch:{marks:{$lt:50},semester:1}}},{
+//!conatcts who have failed marks <50 in any exam in semester 1
+dbconatcts.find({courses:{$elemMatch:{marks:{$lt:50},semester:1}}},{
     
 })
-//!students with scholarship above 40,0000
-db.students.find({scholarships:{$elemMatch :{amount:{$gt:400000},year:2024}}});
+//!conatcts with scholarship above 40,0000
+db.conatcts.find({scholarships:{$elemMatch :{amount:{$gt:400000},year:2024}}});
 
 
 //** element operators(exists,type) */
@@ -242,7 +242,7 @@ db.emp.find({$expr:{$gt:["$com" , "$sal"]}} ,{empName:1 ,sal:1,com:1,_id:0});
 //?  set we can update existing value
 
 //*syntax for $set -> {$set :{keyName:value1,keyName2:value2}}
-db.students.updateMany({age:22} ,{$set:{city:"Noida" ,age:25 ,email:"abc@gmail.com"}}) ;
+db.conatcts.updateMany({age:22} ,{$set:{city:"Noida" ,age:25 ,email:"abc@gmail.com"}}) ;
 
 
 let updateResp={acknowledged :true, 
@@ -251,28 +251,28 @@ let updateResp={acknowledged :true,
 
 }
 
-db.students.updateMany({}, {$set:{hasInsurance:false}});
+db.conatcts.updateMany({}, {$set:{hasInsurance:false}});
 
 //? unset -> using unset we can remove a key-value pair  from the document  
 //?syntax for $unset 
 
 //! updation part 
  //?{$unset :{keyName:""}}
- db.students.updateMany({}, {$unset:{hasInsurance:""}});
-  db.students.updateOne({}, {$set:{age:1}}); 
+ db.conatcts.updateMany({}, {$unset:{hasInsurance:""}});
+  db.conatcts.updateOne({}, {$set:{age:1}}); 
 
 
 //!rename=> using rename we can modify the existing key 
 
 {$rename:{oldKeyName:newKeyName}}
 
-db.students.updateMany({},{$rename:{name:'username'}},
+db.conatcts.updateMany({},{$rename:{name:'username'}},
     {upsert:false}); //options ->by default it's value is false
    
     //!case-1) when  the document gets matched .
 
 //*1 upsert is false -> document is geting updated
-db.students.updateOne({age:25},{$set:{email:"abc.gail.com"}} ,{upsert: false});
+db.conatcts.updateOne({age:25},{$set:{email:"abc.gail.com"}} ,{upsert: false});
 
 //*1 upsert is true -> document is getting updated
     
@@ -282,7 +282,7 @@ db.students.updateOne({age:25},{$set:{email:"abc.gail.com"}} ,{upsert: false});
 //!case-2)when the document does not get matched. 
 
 //*1 upsert is false -> document is geting updated
-db.students.updateOne({age:205},{$set:{email:"aec.gail.com"}} ,{upsert:true});
+db.conatcts.updateOne({age:205},{$set:{email:"aec.gail.com"}} ,{upsert:true});
 
 //*2  upsert is true -> new document created with given values. By default upsert value is false 
 
@@ -465,10 +465,13 @@ db.emp.find({skills:{$size:3},education : {$in:["master","phd"]}});
 
 
 //!set a performance rating to 4.9 for emplouee "matrin " and also add last review date to the emp data 
-db.emp.updateOne({empName:"ward"} ,{$set :{"performance.rating" :4.9 ,"performance.lastPromotedDate": Date.now() or ISODate(2026-1-31)}});
+
+db.emp.updateOne({empName:"ward"} ,{$set :{"performance.rating" :4.9 ,"performance.lastPromotedDate": ISODate("2026-01-31")}});
+
 
 //!add a new facility "gym" to the facilities array of depratment 20 
 db.deptNo.updateOne({dept:20}  ,{$addToSet:{facility:"gym"}})
+
 
 
 //! add "trainingrqeuired" field a strue for all clerks wit performance rating below 4.0 
@@ -607,6 +610,7 @@ let p1={
 //!db.collection_name(aggregate[ {stage1}, {stage2} ,{stage3} ,...]); //!
 //  here each stage represented a query 
 
+// we can use one operator multiple times
 
 //?input to first stage is the complete collection  
 //?Aggregations operators ->$match , $group ,$lookup ,$unwind etc ,
@@ -683,8 +687,202 @@ db.emp.aggregate(
 db.emp.aggregate([
     {
         $match:{
-            $and:[job:{$in:["manager","ananlysts"]},
-        ]
+            $and:[{job:{$in:["manager","ananlysts"]}}, {deptNo:{$in:[10,30]}}]
         }
     }
 ])
+
+//!find the average salary by department 
+db.employee.aggregate([
+    {$group:{
+        _id:"deptNo",
+        averageSalary:{$avg:"$sal"},
+        maxSalary:{$max:"$sal"}
+    }}
+]);
+
+
+db.employee.aggregate([
+    {$group:{
+        _id:"$deptNo", 
+    
+        averageSalary:{$avg:"$sal"},
+         maxSalary:{$max:"$sal"}
+    }},
+    {$project:{
+        departmentNo:"$_id",averageSalary:1,_id:0 ,maxSalary:1 //1using alias
+    }}
+])
+
+
+//!find the total slary expense by department  
+//!  find the maximum salary by department 
+//! find the count of employee  in each job along with their name .
+db.employee.aggregate([
+    {$group:{
+       _id:"$job",
+       count:{$sum:1},
+       empname:{
+        $push:"$empName"
+       }
+   
+
+    }}
+]);
+
+
+
+//!-----------------------------------------------$ add Fields -this is used to add a field while fetching a document .------------------------
+
+
+//syntax-
+db.collection_name.aggregate([
+    {
+        $addFields:{
+            fieldName:value
+        }
+    }
+]);
+
+db.employee.aggregate([
+
+    {$addFields:{
+        isRemote:false
+    }}
+])
+
+//! find the names of employees along with their annual salary 
+
+$add,$multiply,$divide,$mod,$subtract 
+{
+    $op:[v1,v2];
+
+};
+db.employee.aggregate([
+    {
+        $addFields:{
+           annualSal:{
+$multiply:["$sal",12],
+
+           }
+        }
+    }
+])
+
+
+//!find the employee after 1985
+db.departments.aggregate([
+    {
+        $addFields:{
+year:{
+    $year:"hirDate"
+}
+        },
+
+
+        $match:{
+            year:{$gte:1985}
+        }
+    }
+])
+
+
+//! display the hired  year along with their annual salary of each employee 
+db.employee.aggregate([
+    {
+        $addFields:{
+            annSal:{
+                $multiply:["$sal",4],
+            },
+          //  month:{
+           // $month:"$hireDate"
+       // }//
+        }
+
+        
+    },
+
+
+ {
+        $addFields:{
+           year:{$year: "$hireDate"}
+    }}
+
+
+
+]);
+
+
+//!----------------------$lookup --------------------------------------------------------------------------------------------------------
+//* it is used to perform join operation between two or mor collections and output for lookup will come always inside array 
+
+ //syntax------------
+db.collection_name.aggregate([
+    {
+$lookup:{
+ from :"collection name to be joined ",
+    foreignField:"name of the field to matched of foreign collection ",
+    localField:"name of the field to be matched of local collection ",
+    as:"alias name", //?usually, we pass local Field Name  as alias  name 
+
+
+},}
+   
+
+ ]);
+
+
+ db.user.insertMany([
+    {
+        _id:"A123",
+        name:"Ashwin",
+        contacts:"C123"
+    } ,{
+        _id:"V123",
+        name:"Varun",
+        contacts:"C124"
+    },
+
+ ]);
+
+ db.contacts.insertMany([
+    {
+        id:"C123",
+        email:"varun@gmail",
+        user:"A123",
+
+    },
+     {
+        id:"C124",
+        email:"aman@gmail",
+          user:"V123",
+    }
+ ]);
+
+
+// merged contact data into user data
+
+ db.user.aggregate([ //local collection 
+    {
+        $lookup:{
+            from:"contacts", //foreign collection 
+            foreignField:"id", //foreign collection value 
+        localField:"contacts",
+as:"contacts"
+        
+        
+        }
+    }
+ ]);
+
+
+// merged user data into contact data 
+ db.contacts.aggregate([
+    {
+        $lookup:{
+            from:"user",
+            foreignField:"_id",
+            localField:"user",as:"user"
+        }
+    }
+ ])
